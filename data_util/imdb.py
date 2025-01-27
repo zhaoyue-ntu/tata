@@ -54,36 +54,6 @@ def get_job_queries(pat = 'imdb/bao/job_queries/'):
     return sql_identifiers, sql_queries
 
 
-
-# def get_planss(pat = 'imdb/bao/job/'):
-#     df_list = []
-#     for arm in range(49):
-#         df_list.append(pd.read_csv(pat + 'arm{}/train_plan.csv'.format(arm)))
-
-#     plans = []
-#     planss = []
-#     for i in range(49):
-#         pls = [json.loads(plan) for plan in df_list[i]['json']]
-#         plans = plans+pls
-#         planss.append(pls)
-
-#     return planss
-
-# def get_planss(pat = 'imdb/bao/job/', keyword='plan'):
-#     df_list = []
-#     for arm in range(49):
-#         df_list.append(pd.read_csv(pat + 'arm{}/collated_plan.csv'.format(arm)))
-
-#     costss = []
-#     planss = []
-#     for i in range(49):
-#         pls = [json.loads(plan) for plan in df_list[i][keyword]]
-#         planss.append(pls)
-#         costss.append(df_list[i]['Avg Cost'].tolist())
-
-#     return planss, costss
-
-
 from .utils import get_col_min_max
 def get_min_max(pat = 'imdb/'):
     minmax = pd.read_csv(pat+ 'column_min_max_vals.csv')
@@ -91,59 +61,8 @@ def get_min_max(pat = 'imdb/'):
     return col_min_max
 
 
-
-## should change to proper job templates
-def get_imdb_old(dat_path='imdb/'):
-    df = pd.DataFrame()
-    for i in range(20):
-        tmp_df = pd.read_csv(dat_path + 'plan_and_cost/train_plan_part{}.csv'.format(i))
-        df = pd.concat([df,tmp_df])
-    df.reset_index(drop=True, inplace=True)
-
-    roots, js_nodes, idxs = df2nodes(df)
-    costs = get_costs(js_nodes)
-
-    minmax = pd.read_csv(dat_path + 'column_min_max_vals.csv')
-    col_min_max = get_col_min_max(minmax)
-    ds_info = DatasetInfo({})
-    ds_info.construct_from_plans(roots)
-    ds_info.get_columns(col_min_max)
-
-    train_roots, val_roots = roots[:90000], roots[90000:]
-    train_costs, val_costs = costs[:90000], costs[90000:]
-    train_js_nodes, val_js_nodes = js_nodes[:90000], js_nodes[90000:]
-
-    syn_df = pd.read_csv(dat_path+'synthetic_plan.csv')
-    syn_roots, syn_js_nodes, _ = df2nodes(syn_df)
-    syn_costs = get_costs(syn_js_nodes)
-
-    job_light_df = pd.read_csv(dat_path+'job-light_plan.csv')
-    job_light_roots, job_light_js_nodes, _ = df2nodes(job_light_df)
-    job_light_costs = get_costs(job_light_js_nodes)
-
-    return {
-        'ds_info' : ds_info,
-        'data_raw' : df,
-        'col_min_max' : col_min_max,
-        'total_roots' : roots,
-        'total_costs' : costs,
-        'train_roots' : train_roots,
-        'train_costs' : train_costs,
-        'train_js_nodes' : train_js_nodes,
-        'val_roots' : val_roots,
-        'val_costs' : val_costs,
-        'val_js_nodes' : val_js_nodes,
-        'syn_roots' : syn_roots,
-        'syn_js_nodes' : syn_js_nodes,
-        'syn_costs' : syn_costs,
-        'job_light_roots' : job_light_roots,
-        'job_light_js_nodes' : job_light_js_nodes,
-        'job_light_costs' : job_light_costs,
-    }
-
-
 def get_imdb_pretrain_data(dat_path='../imdb/', seed=42, frac = 0.3):
-    files = sorted(glob.glob(dat_path+'server/job_pqo_run/collated_*'))
+    files = sorted(glob.glob(dat_path+'job_pqo_run/collated_*'))
     seeded_gen = np.random.default_rng(seed)
     df = pd.DataFrame()
     for file in files:
